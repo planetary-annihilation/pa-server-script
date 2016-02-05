@@ -1240,6 +1240,8 @@ function playerMsg_modifySettings(msg) {
     var game_options = _.cloneDeep(DEFAULT_GAME_OPTIONS);
 
     var settings = {
+        max_spectators: MAX_SPECTATORS,
+        max_players: MAX_PLAYERS,
         spectators: MAX_SPECTATORS,
         hidden: false,
         friends: false,
