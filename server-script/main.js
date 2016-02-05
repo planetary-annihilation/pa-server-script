@@ -8,6 +8,9 @@ var _ = require('thirdparty/lodash');
 // Timeout values, in seconds.
 var EMPTY_TIMEOUT = 120;
 
+exports.MAX_PLAYERS = 10;
+exports.MAX_SPECTATORS = 3;
+
 function shutdownWhenEmpty() {
     var emptyTimeout;
     utils.pushCallback(server, 'onConnect', function(onConnect, client, reconnect) {

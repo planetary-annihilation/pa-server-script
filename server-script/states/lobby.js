@@ -40,8 +40,8 @@ var commanders = new commander_manager.CommanderManager();
 var colors = new color_manager.ColorManager();
 
 var START_GAME_DELAY = 5; // In s.
-var MAX_PLAYERS = 10;
-var MAX_SPECTATORS = 3;
+var MAX_PLAYERS = main.MAX_PLAYERS;
+var MAX_SPECTATORS = main.MAX_SPECTATORS;
 var MAX_CLIENTS = MAX_PLAYERS + MAX_SPECTATORS;
 var DEFAULT_LOBBY_TAG = '';
 var DEFAULT_LOBBY_NAME = '';
