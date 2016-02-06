@@ -5,6 +5,9 @@ var _ = require('thirdparty/lodash');
 
 var cleanup = [];
 
+var MAX_PLAYERS = main.MAX_PLAYERS;
+var MAX_SPECTATORS = main.MAX_SPECTATORS;
+
 var EMPTY_TIMEOUT = 5 * 60;
 
 exports.url = '';
@@ -31,9 +34,9 @@ exports.enter = function() {
             started: false,
             players: 0,
             creator: null,
-            max_players: 1,
+            max_players: MAX_PLAYERS,
             spectators: 0,
-            max_spectators: 0,
+            max_spectators: MAX_SPECTATORS,
             mode: 'Waiting',
             mod_names: modNames,
             cheat_config: main.cheats,
