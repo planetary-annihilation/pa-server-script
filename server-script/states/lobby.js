@@ -290,11 +290,13 @@ function ArmyModel(options) {
     self.slots = options.slots ? Math.max(options.slots, 1) : 1;
     self.alliance = !!options.alliance;
     self.allianceGroup = 0; /* 0 indicates no alliance */
+    self.spec_tag = options.spec_tag || '';
 
     self.asJson = function () {
         return {
             slots: self.slots,
-            alliance: self.alliance
+            alliance: self.alliance,
+            spec_tag: self.spec_tag
         };
     };
 
@@ -308,7 +310,8 @@ function ArmyModel(options) {
 
         return {
             slots: s,
-            alliance_group: self.allianceGroup
+            alliance_group: self.allianceGroup,
+            spec_tag: self.spec_tag
         };
     };
 };
