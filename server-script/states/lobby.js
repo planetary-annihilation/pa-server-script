@@ -248,10 +248,10 @@ function PlayerModel(client, options) {
         };
     };
 
-    self.finalize = function () {
+    self.finalize = function (specTag) {
         return {
             name: self.client.name,
-            commander: self.commander,
+            commander: self.commander + (specTag || ''),
             client: self.client,
             army: self.armyIndex,
             slot: self.slotIndex,
@@ -474,7 +474,9 @@ function LobbyModel(creator) {
         var result = {};
 
         _.forIn(self.players, function (value, key) {
-            result[key] = value.finalize()
+            var army = self.armies[value.armyIndex]
+            var specTag = (army && army.spec_tag) || ''
+            result[key] = value.finalize(specTag)
         });
 
         return result;
@@ -488,7 +490,7 @@ function LobbyModel(creator) {
             if (!army) /* player is spectating */
                 return;
 
-            army.slots[element.slotIndex] = element.finalize(); /* insert finalized block { name, commander, client, army, ai } */
+            army.slots[element.slotIndex] = element.finalize(army.spec_tag); /* insert finalized block { name, commander, client, army, ai } */
 
             if (element.slotIndex === 0) { /* only use the color for the first player in the army */
                 result[element.armyIndex].color = colors.getColorFor(element.colorIndex); /* insert expanded color */
