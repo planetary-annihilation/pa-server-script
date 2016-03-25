@@ -749,10 +749,12 @@ function LobbyModel(creator) {
             var full = server.clients.length >= server.maxClients;
 
             var modNames = [];
+            var modIdentifiers = [];
             var mods = server.getMods();
             if (mods !== undefined && mods.mounted_mods !== undefined) {
                 _.forEach(mods.mounted_mods, function (element) {
                     modNames.push(element.display_name);
+                    modIdentifiers.push(element.identifier);
                 });
             }
 
@@ -774,6 +776,7 @@ function LobbyModel(creator) {
                 max_spectators: main.spectators,
                 mode: mode,
                 mod_names: modNames,
+                mod_identifiers: modIdentifiers,
                 cheat_config: main.cheats,
                 player_names: player_names,
                 spectator_names: spectator_names,
