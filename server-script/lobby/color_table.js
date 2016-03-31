@@ -1,178 +1,192 @@
+  var brightWhite = [230,230,230],
+            white = [200,200,200],
+           silver = [150,150,155],
+            black = [060,060,060],
+        darkBlack = [040,040,040],
+
+          justRed = [255,  0,  0],
+         lightRed = [235, 60, 54],
+              red = [210, 50, 44],
+          darkRed = [186, 26, 26],
+         burgundy = [123, 22, 33],
+
+             gold = [200,150, 30],
+         darkGold = [175,140,  0],
+
+         iceWhite = [215,238,228],
+          iceBlue = [180,234,255],
+        lightBlue = [ 51,151,197],
+             blue = [ 59, 54,182],
+         navyBlue = [  0, 51,102],
+
+      lightYellow = [219,220, 47],
+           yellow = [255,190, 20],
+
+           orange = [255,144, 47],
+       darkOrange = [197, 83,  0],
+
+         skinPink = [240,194,170],
+        lightPink = [255,122,204],
+           violet = [153,153,255],
+  elodeamelonPink = [255, 50,100],
+             pink = [206, 51,145],
+           purple = [113, 52,165],
+       darkPurple = [ 79, 47, 79],
+
+             cyan = [ 93,242,255],
+         darkCyan = [  0,139,149],
+
+        mintGreen = [180,255,180],
+        limeGreen = [110,225, 10],
+       oliveGreen = [105,120,  0],
+       lightGreen = [ 50,220,110],
+            green = [ 83,159, 48],
+        darkGreen = [  0, 70,  0],
+
+fluorescentJacket = [209,255, 56],
+
+            slate = [ 47, 79, 79],
+
+             bone = [255,250,205],
+              tan = [210,180,140],
+            brown = [142,107, 68],
+     giraffeBrown = [130, 80, 10];
+
 exports.data = [
     {
-        primary: [210,50,44],
+        primary: black,
         secondary: [
-            [210, 50, 44],
-            [206, 51, 122],
-            [113, 52, 165],
-            [59, 54, 182],
-            [51, 151, 197],
-            [83, 119, 48],
-            [219, 217, 37],
-            [142, 107, 68],
-            [255, 144, 47],
-            [200, 200, 200],
-            [70, 70, 70]
+            red,
+            pink,
+            lightBlue,
+            green,
+            orange,
+            gold,
+            silver
         ]
     },
     {
-        primary: [206,51,122],
-        secondary: [
-            [210, 50, 44],
-            [206, 51, 122],
-            [113, 52, 165],
-            [59, 54, 182],
-            [51, 151, 197],
-            [83, 119, 48],
-            [219, 217, 37],
-            [142, 107, 68],
-            [255, 144, 47],
-            [200, 200, 200],
-            [70, 70, 70]
-        ]
+        primary: silver,
+        secondary: [ red, darkBlack, lightBlue, limeGreen ]
     },
     {
-        primary: [113,52,165],
-        secondary: [
-            [210, 50, 44],
-            [206, 51, 122],
-            [113, 52, 165],
-            [59, 54, 182],
-            [51, 151, 197],
-            [83, 119, 48],
-            [219, 217, 37],
-            [142, 107, 68],
-            [255, 144, 47],
-            [200, 200, 200],
-            [70, 70, 70]
-        ]
+        primary: slate,
+        secondary: [ darkPurple, orange, brown ]
     },
     {
-        primary: [59,54,182],
-        secondary: [
-            [210, 50, 44],
-            [206, 51, 122],
-            [113, 52, 165],
-            [59, 54, 182],
-            [51, 151, 197],
-            [83, 119, 48],
-            [219, 217, 37],
-            [142, 107, 68],
-            [255, 144, 47],
-            [200, 200, 200],
-            [70, 70, 70]
-        ]
+        primary: navyBlue,
+        secondary: [ limeGreen, elodeamelonPink, tan ]
     },
     {
-        primary: [51,151,197],
-        secondary: [
-            [210, 50, 44],
-            [206, 51, 122],
-            [113, 52, 165],
-            [59, 54, 182],
-            [51, 151, 197],
-            [83, 119, 48],
-            [219, 217, 37],
-            [142, 107, 68],
-            [255, 144, 47],
-            [200, 200, 200],
-            [70, 70, 70]
-        ]
+        primary: brown,
+        secondary: [ tan, purple, pink, mintGreen ]
     },
     {
-        primary: [83,119,48],
-        secondary: [
-            [210, 50, 44],
-            [206, 51, 122],
-            [113, 52, 165],
-            [59, 54, 182],
-            [51, 151, 197],
-            [83, 119, 48],
-            [219, 217, 37],
-            [142, 107, 68],
-            [255, 144, 47],
-            [200, 200, 200],
-            [70, 70, 70]
-        ]
+        primary: purple,
+        secondary: [ lightBlue, gold, white ]
     },
     {
-        primary: [219,217,37],
-        secondary: [
-            [210, 50, 44],
-            [206, 51, 122],
-            [113, 52, 165],
-            [59, 54, 182],
-            [51, 151, 197],
-            [83, 119, 48],
-            [219, 217, 37],
-            [142, 107, 68],
-            [255, 144, 47],
-            [200, 200, 200],
-            [70, 70, 70]
-        ]
+        primary: blue,
+        secondary: [ yellow, orange, iceWhite ]
     },
     {
-        primary: [142,107,68],
-        secondary: [
-            [210, 50, 44],
-            [206, 51, 122],
-            [113, 52, 165],
-            [59, 54, 182],
-            [51, 151, 197],
-            [83, 119, 48],
-            [219, 217, 37],
-            [142, 107, 68],
-            [255, 144, 47],
-            [200, 200, 200],
-            [70, 70, 70]
-        ]
+        primary: darkGreen,
+        secondary: [ lightYellow, white, pink ]
     },
     {
-        primary: [255,144,47],
-        secondary: [
-            [210, 50, 44],
-            [206, 51, 122],
-            [113, 52, 165],
-            [59, 54, 182],
-            [51, 151, 197],
-            [83, 119, 48],
-            [219, 217, 37],
-            [142, 107, 68],
-            [255, 144, 47],
-            [200, 200, 200],
-            [70, 70, 70]
-        ]
+        primary: darkRed,
+        secondary: [ gold, white, purple, black ]
     },
     {
-        primary: [200,200,200],
-        secondary: [
-            [210, 50, 44],
-            [206, 51, 122],
-            [113, 52, 165],
-            [59, 54, 182],
-            [51, 151, 197],
-            [83, 119, 48],
-            [219, 217, 37],
-            [142, 107, 68],
-            [255, 144, 47],
-            [200, 200, 200],
-            [70, 70, 70]
-        ]
+        primary: red,
+        secondary: [ lightBlue, green, yellow ]
     },
     {
-        primary: [70,70,70],
-        secondary: [
-            [210, 50, 44],
-            [206, 51, 122],
-            [113, 52, 165],
-            [59, 54, 182],
-            [51, 151, 197],
-            [83, 119, 48],
-            [219, 217, 37],
-            [142, 107, 68],
-            [255, 144, 47],
-            [200, 200, 200],
-            [70, 70, 70]
-        ]
+        primary: burgundy,
+        secondary: [ cyan, bone, limeGreen ]
+    },
+    {
+        primary: elodeamelonPink,
+        secondary: [ lightGreen, justRed, purple ]
+    },
+    {
+        primary: pink,
+        secondary: [ orange, lightBlue, yellow ]
+    },
+    {
+        primary: lightPink,
+        secondary: [ black, burgundy, brightWhite ]
+    },
+    {
+        primary: cyan,
+        secondary: [ purple, navyBlue, yellow ]
+    },
+    {
+        primary: bone,
+        secondary: [ darkGreen, darkRed, purple ]
+    },
+    {
+        primary: yellow,
+        secondary: [ giraffeBrown, darkBlack, burgundy, slate ]
+    },
+    {
+        primary: orange,
+        secondary: [ black, slate, lightBlue ]
+    },
+    {
+        primary: white,
+        secondary: [ red, lightBlue, green, orange, black ]
+    },
+    {
+        primary: limeGreen,
+        secondary: [ darkRed, darkGreen, navyBlue ]
+    },
+    {
+        primary: tan,
+        secondary: [ oliveGreen, blue, purple ]
+    },
+    {
+        primary: iceBlue,
+        secondary: [ brightWhite, darkRed, orange ]
+    },
+    {
+        primary: lightBlue,
+        secondary: [ gold, red, elodeamelonPink ]
+    },
+    {
+        primary: violet,
+        secondary: [ lightPink, lightRed, purple ]
+    },
+    {
+        primary: green,
+        secondary: [ yellow, pink, purple ]
+    },
+    {
+        primary: oliveGreen,
+        secondary: [ purple, bone, violet ]
+    },
+    {
+        primary: mintGreen,
+        secondary: [ brown, navyBlue, violet ]
+    },
+    {
+        primary: darkGold,
+        secondary: [ purple, lightBlue, silver ]
+    },
+    {
+        primary: darkCyan,
+        secondary: [ black, brightWhite ]
+    },
+    {
+        primary: skinPink,
+        secondary: [ darkRed, purple, darkCyan ]
+    },
+    {
+        primary: darkOrange,
+        secondary: [ darkGreen, purple, darkCyan ]
+    },
+    {
+        primary: fluorescentJacket,
+        secondary: [ black, lightBlue, purple, silver ]
     }
 ];
