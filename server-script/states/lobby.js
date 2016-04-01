@@ -271,9 +271,9 @@ function PlayerModel(client, options) {
             return;
         }
 
-        // Do not validate AI commanders
+        // Do not validate AI commanders or unknown custom commanders in server mods
 
-        if (!self.ai && !self.client.validateItem(commanderObject)) {
+        if (!self.ai && commanders.isKnownCommanderSpec(new_commander) && !self.client.validateItem(commanderObject)) {
             debug_log("Failed to validate ownership of " + (commanderObject));
             return;
         }
@@ -1718,6 +1718,8 @@ function playerMsg_modDataUpdated(msg) {
             server.resetModUpdateAuthToken();
         }
     });
+
+    commanders.update();
 
     _.forEach(server.clients, function (client) {
         if (client.id !== msg.client.id) {
