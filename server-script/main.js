@@ -11,6 +11,15 @@ var EMPTY_TIMEOUT = 120;
 exports.MAX_PLAYERS = 10;
 exports.MAX_SPECTATORS = 3;
 
+var envMaxPlayersIndex = env.indexOf('--max-players');
+if (envMaxPlayersIndex != -1) {
+    exports.MAX_PLAYERS = parseInt(env[envMaxPlayersIndex+1]);
+}
+var envMaxSpectatorsIndex = env.indexOf('--max-spectators');
+if (envMaxSpectatorsIndex != -1) {
+    exports.MAX_SPECTATORS = parseInt(env[envMaxSpectatorsIndex+1]);
+}
+
 function shutdownWhenEmpty() {
     var emptyTimeout;
     utils.pushCallback(server, 'onConnect', function(onConnect, client, reconnect) {
