@@ -42,7 +42,7 @@ exports.enter = function() {
             cheat_config: main.cheats,
             player_names: [],
             spectator_names: [],
-            require_password: false,
+            require_password: !! main.SERVER_PASSWORD,
             whitelist: [],
             blacklist: [],
             tag: '',
