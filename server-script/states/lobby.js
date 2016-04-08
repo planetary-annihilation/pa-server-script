@@ -9,6 +9,8 @@ var _ = require('thirdparty/lodash');
 var commander_manager = require('lobby/commander_manager');
 var color_manager = require('lobby/color_manager');
 
+var SERVER_PASSWORD = main.SERVER_PASSWORD;
+
 var getAIName = (function () {
 
     var ai_names = _.shuffle(require('ai_names_table').data); /* shuffle returns a new collection */
@@ -1770,7 +1772,7 @@ exports.enter = function (owner) {
 
     var client_data = initOwner(owner);
 
-    if (main.SERVER_PASSWORD && client_data.password !== main.SERVER_PASSWORD ) {
+    if (SERVER_PASSWORD && client_data.password !== SERVER_PASSWORD ) {
         sim.shutdown(false);
         server.exit();
         return;

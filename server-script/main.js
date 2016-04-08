@@ -23,7 +23,7 @@ if (envMaxSpectatorsIndex != -1) {
 
 var envServerPasswordIndex = env.indexOf('--server-password');
 if (envServerPasswordIndex != -1) {
-    exports.SERVER_PASSWORD = parseInt(env[envServerPasswordIndex+1]);
+    exports.SERVER_PASSWORD = env[envServerPasswordIndex+1];
 }
 
 function shutdownWhenEmpty() {
