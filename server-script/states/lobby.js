@@ -9,6 +9,8 @@ var _ = require('thirdparty/lodash');
 var commander_manager = require('lobby/commander_manager');
 var color_manager = require('lobby/color_manager');
 
+var SERVER_PASSWORD = main.SERVER_PASSWORD;
+
 var getAIName = (function () {
 
     var ai_names = _.shuffle(require('ai_names_table').data); /* shuffle returns a new collection */
@@ -1745,15 +1747,16 @@ function initOwner(owner) {
     debug_log('initOwner');
     server.maxClients = 1;
 
+    var client_data = { uberid: '', password: '', uuid: '' };
+
     if (!owner) {
         var testConfig = _.cloneDeep(require('test').exampleConfig);
         main.setState(main.states.lobby, testConfig);
-        return;
+        return client_data;
     }
 
     bouncer.addPlayerToModlist(owner.id);
 
-    var client_data = { uberid: '', password: '', uuid: '' };
     try {
         client_data = JSON.parse(owner.data);
         bouncer.setUUID(client_data.uuid);
@@ -1761,17 +1764,25 @@ function initOwner(owner) {
     catch (error) {
         debug_log('js initOwner : unable to parse owner data');
     }
+    return client_data;
 }
 
 exports.url = 'coui://ui/main/game/new_game/new_game.html';
 exports.enter = function (owner) {
+
+    var client_data = initOwner(owner);
+
+    if (SERVER_PASSWORD && client_data.password !== SERVER_PASSWORD ) {
+        sim.shutdown(false);
+        server.exit();
+        return;
+    }
 
     _.forEachRight(cleanupOnEntry, function (c) { c(); });
 
     lobbyModel = new LobbyModel();
     cleanupOnEntry.push(function () { lobbyModel = undefined; });
 
-    initOwner(owner);
     lobbyModel.changeControl({ has_first_config: false, countdown: false, starting: false, system_ready: false, sim_ready: false });
 
     utils.pushCallback(sim.planets, 'onReady', function (onReady) {

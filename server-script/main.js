@@ -10,6 +10,21 @@ var EMPTY_TIMEOUT = 120;
 
 exports.MAX_PLAYERS = 10;
 exports.MAX_SPECTATORS = 3;
+exports.SERVER_PASSWORD = '';
+
+var envMaxPlayersIndex = env.indexOf('--max-players');
+if (envMaxPlayersIndex != -1) {
+    exports.MAX_PLAYERS = parseInt(env[envMaxPlayersIndex+1]);
+}
+var envMaxSpectatorsIndex = env.indexOf('--max-spectators');
+if (envMaxSpectatorsIndex != -1) {
+    exports.MAX_SPECTATORS = parseInt(env[envMaxSpectatorsIndex+1]);
+}
+
+var envServerPasswordIndex = env.indexOf('--server-password');
+if (envServerPasswordIndex != -1) {
+    exports.SERVER_PASSWORD = env[envServerPasswordIndex+1];
+}
 
 function shutdownWhenEmpty() {
     var emptyTimeout;

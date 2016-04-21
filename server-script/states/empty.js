@@ -7,6 +7,7 @@ var cleanup = [];
 
 var MAX_PLAYERS = main.MAX_PLAYERS;
 var MAX_SPECTATORS = main.MAX_SPECTATORS;
+var SERVER_PASSWORD = main.SERVER_PASSWORD;
 
 var EMPTY_TIMEOUT = 5 * 60;
 
@@ -42,7 +43,7 @@ exports.enter = function() {
             cheat_config: main.cheats,
             player_names: [],
             spectator_names: [],
-            require_password: false,
+            require_password: !! SERVER_PASSWORD,
             whitelist: [],
             blacklist: [],
             tag: '',
