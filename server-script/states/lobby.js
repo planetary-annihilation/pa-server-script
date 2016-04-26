@@ -97,6 +97,8 @@ var client_state = {
    we don't want to kill the client, since the playing state will setup a disconnect timer. */
 var hasStartedPlaying = false;
 
+var MAX_LOBBY_CHAT_HISTORY = 100;
+
 var lobbyChatHistory = [];
 
 function PlayerModel(client, options) {
@@ -1591,7 +1593,7 @@ function playerMsg_chatMessage(msg) {
     };
 
     lobbyChatHistory.push(payload);
-    lobbyChatHistory.slice(-100,0);
+    lobbyChatHistory.slice(-MAX_LOBBY_CHAT_HISTORY,0);
 
     server.broadcast({
         message_type: 'chat_message',
