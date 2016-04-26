@@ -97,6 +97,8 @@ var client_state = {
    we don't want to kill the client, since the playing state will setup a disconnect timer. */
 var hasStartedPlaying = false;
 
+var lobbyChatHistory = [];
+
 function PlayerModel(client, options) {
     var self = this;
 
@@ -1582,14 +1584,26 @@ function playerMsg_chatMessage(msg) {
     var response = server.respond(msg);
     if (!msg.payload || !msg.payload.message)
         return response.fail("Invalid message");
+
+    var payload = {
+        player_name: msg.client.name,
+        message: msg.payload.message
+    };
+
+    lobbyChatHistory.push(payload);
+    lobbyChatHistory.slice(-100,0);
+
     server.broadcast({
         message_type: 'chat_message',
-        payload: {
-            player_name: msg.client.name,
-            message: msg.payload.message
-        }
+        payload: payload
     });
     response.succeed();
+}
+
+function playerMsg_chatHistory(msg) {
+    debug_log('playerMsg_chatHistory');
+    var response = server.respond(msg);
+    response.succeed({ chat_history: lobbyChatHistory });
 }
 
 function playerMsg_jsonMessage(msg) {
@@ -1948,6 +1962,7 @@ exports.enter = function (owner) {
         mod_data_updated: playerMsg_modDataUpdated,
         request_cheat_config: playerMsg_requestCheatConfig,
         json_message: playerMsg_jsonMessage,
+        chat_history: playerMsg_chatHistory
     });
     cleanup.push(function () { removeHandlers(); });
 
