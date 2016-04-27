@@ -29,7 +29,7 @@ if (envServerPasswordIndex != -1) {
 }
 
 var envDefaultLobbyNameIndex = env.indexOf('--default-lobby-name');
-if (envServerPasswordIndex != -1) {
+if (envDefaultLobbyNameIndex != -1) {
     exports.DEFAULT_LOBBY_NAME = env[envDefaultLobbyNameIndex+1];
 }
 
