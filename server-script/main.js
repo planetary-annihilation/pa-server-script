@@ -11,6 +11,8 @@ var EMPTY_TIMEOUT = 120;
 exports.MAX_PLAYERS = 10;
 exports.MAX_SPECTATORS = 3;
 exports.SERVER_PASSWORD = '';
+exports.DEFAULT_LOBBY_NAME = '';
+exports.DEFAULT_GAME_TYPE = 'FreeForAll';
 
 var envMaxPlayersIndex = env.indexOf('--max-players');
 if (envMaxPlayersIndex != -1) {
@@ -24,6 +26,16 @@ if (envMaxSpectatorsIndex != -1) {
 var envServerPasswordIndex = env.indexOf('--server-password');
 if (envServerPasswordIndex != -1) {
     exports.SERVER_PASSWORD = env[envServerPasswordIndex+1];
+}
+
+var envDefaultLobbyNameIndex = env.indexOf('--default-lobby-name');
+if (envDefaultLobbyNameIndex != -1) {
+    exports.DEFAULT_LOBBY_NAME = env[envDefaultLobbyNameIndex+1];
+}
+
+var envDefaultGameTypeIndex = env.indexOf('--default-game-type');
+if (envDefaultGameTypeIndex != -1) {
+    exports.DEFAULT_GAME_TYPE = env[envDefaultGameTypeIndex+1];
 }
 
 function shutdownWhenEmpty() {
