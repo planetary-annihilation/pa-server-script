@@ -46,12 +46,17 @@ var MAX_PLAYERS = main.MAX_PLAYERS;
 var MAX_SPECTATORS = main.MAX_SPECTATORS;
 var MAX_CLIENTS = MAX_PLAYERS + MAX_SPECTATORS;
 var DEFAULT_LOBBY_TAG = '';
-var DEFAULT_LOBBY_NAME = '';
-var DEFAULT_GAME_TYPE = 'FreeForAll';
-var VALID_GAME_TYPES = [DEFAULT_GAME_TYPE, 'TeamArmies', 'VersusAI'];
+var DEFAULT_LOBBY_NAME = main.DEFAULT_LOBBY_NAME;
+var DEFAULT_GAME_TYPE = main.DEFAULT_GAME_TYPE;
+var VALID_GAME_TYPES = ['FreeForAll', 'TeamArmies', 'VersusAI'];
 var isValidGameType = function (game_type) {
     return VALID_GAME_TYPES.indexOf(game_type) != -1;
 };
+
+if (!isValidGameType(DEFAULT_GAME_TYPE)) {
+    DEFAULT_GAME_TYPE = VALID_GAME_TYPES[0];
+}
+
 var isFFAType = function (game_type) {
     return game_type === 'FreeForAll';
 };
@@ -92,12 +97,19 @@ var client_state = {
    we don't want to kill the client, since the playing state will setup a disconnect timer. */
 var hasStartedPlaying = false;
 
+var MAX_LOBBY_CHAT_HISTORY = 100;
+
+var lobbyChatHistory = [];
+
 function PlayerModel(client, options) {
     var self = this;
 
     self.client = client; /* data, debugDesc, connected, id, name */
     try {
         self.client_data = JSON.parse(client.data);
+
+        // add uberId for custom servers
+        client.uberid = client_data.uberid;
     } catch (error) {
         debug_log("Unable to parse client data for player");
         debug_log(error);
@@ -750,15 +762,7 @@ function LobbyModel(creator) {
         if (publish) {
             var full = server.clients.length >= server.maxClients;
 
-            var modNames = [];
-            var modIdentifiers = [];
-            var mods = server.getMods();
-            if (mods !== undefined && mods.mounted_mods !== undefined) {
-                _.forEach(mods.mounted_mods, function (element) {
-                    modNames.push(element.display_name);
-                    modIdentifiers.push(element.identifier);
-                });
-            }
+            var modsData = server.getModsForBeacon();
 
             var player_names = _.map(_.filter(self.players, { 'spectator': false }), function (player) { return player.client.name; });
             var spectator_names = _.map(_.filter(self.players, { 'spectator': true }), function (player) { return player.client.name; });
@@ -777,8 +781,8 @@ function LobbyModel(creator) {
                 spectators: spectator_names.length,
                 max_spectators: main.spectators,
                 mode: mode,
-                mod_names: modNames,
-                mod_identifiers: modIdentifiers,
+                mod_names: modsData.names,
+                mod_identifiers: modsData.identifiers,
                 cheat_config: main.cheats,
                 player_names: player_names,
                 spectator_names: spectator_names,
@@ -1582,11 +1586,39 @@ function playerMsg_chatMessage(msg) {
     var response = server.respond(msg);
     if (!msg.payload || !msg.payload.message)
         return response.fail("Invalid message");
+
+    var payload = {
+        player_name: msg.client.name,
+        message: msg.payload.message
+    };
+
+    lobbyChatHistory.push(payload);
+    lobbyChatHistory.slice(-MAX_LOBBY_CHAT_HISTORY,0);
+
     server.broadcast({
         message_type: 'chat_message',
+        payload: payload
+    });
+    response.succeed();
+}
+
+function playerMsg_chatHistory(msg) {
+    debug_log('playerMsg_chatHistory');
+    var response = server.respond(msg);
+    response.succeed({ chat_history: lobbyChatHistory });
+}
+
+function playerMsg_jsonMessage(msg) {
+    debug_log('playerMsg_jsonMessage');
+    var response = server.respond(msg);
+    if (!msg.payload)
+        return response.fail("No payload");
+    server.broadcast({
+        message_type: 'json_message',
         payload: {
-            player_name: msg.client.name,
-            message: msg.payload.message
+            id: msg.client.id,
+            uberId: msg.client.uberId,
+            payload: msg.payload,
         }
     });
     response.succeed();
@@ -1724,12 +1756,18 @@ function playerMsg_modDataUpdated(msg) {
     commanders.update();
 
     _.forEach(server.clients, function (client) {
+        var mods = server.getModsPayload();
+
         if (client.id !== msg.client.id) {
+            client.message({
+                message_type: 'downloading_mod_data',
+                payload: mods
+            });
             client.downloadModsFromServer();
         } else {
             client.message({
                 message_type: 'mount_mod_file_data',
-                payload: {}
+                payload: mods
             });
         }
     });
@@ -1760,6 +1798,9 @@ function initOwner(owner) {
     try {
         client_data = JSON.parse(owner.data);
         bouncer.setUUID(client_data.uuid);
+
+        // add uberId for custom servers
+        owner.uberid = client_data.uberid;
     }
     catch (error) {
         debug_log('js initOwner : unable to parse owner data');
@@ -1808,6 +1849,9 @@ exports.enter = function (owner) {
         try {
             client_data = JSON.parse(client.data);
             debug_log(client);
+
+            // add uberId for custom servers
+            client.uberid = client_data.uberid;
         }
         catch (e) {
             debug_log('js utils.pushCallback : unable to parse client.data');
@@ -1862,6 +1906,11 @@ exports.enter = function (owner) {
         if (player.armyIndex === -1) /* make the player a spectator if there is no room */
             player.spectator = true;
 
+        client.message({
+            message_type: 'downloading_mod_data',
+            payload: server.getModsPayload()
+        });
+
         debug_log('calling client.downloadModsFromServer');
         client.downloadModsFromServer();
 
@@ -1913,7 +1962,9 @@ exports.enter = function (owner) {
         set_loading: playerMsg_setLoading,
         mod_data_available: playerMsg_modDataAvailable,
         mod_data_updated: playerMsg_modDataUpdated,
-        request_cheat_config: playerMsg_requestCheatConfig
+        request_cheat_config: playerMsg_requestCheatConfig,
+        json_message: playerMsg_jsonMessage,
+        chat_history: playerMsg_chatHistory
     });
     cleanup.push(function () { removeHandlers(); });
 

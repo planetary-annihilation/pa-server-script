@@ -189,3 +189,31 @@ var uuid = utils.createUUIDString();
 server.uuid = function () {
     return uuid;
 };
+
+server.getModsPayload = function() {
+    var mods = server.getMods();
+
+    if (mods && mods.mounted_mods) {
+        mods = mods.mounted_mods;
+    } else {
+        mods = undefined;
+    }
+    return mods;
+}
+
+server.getModsForBeacon = function() {
+
+    var names = [];
+    var identifiers = [];
+    var mods = server.getModsPayload();
+    if (mods) {
+        _.forEach(mods, function (mod) {
+            names.push(mod.display_name);
+            identifiers.push(mod.identifier);
+        });
+    }
+    
+    var result = { names: names, identifiers: identifiers };
+    
+    return result;
+}

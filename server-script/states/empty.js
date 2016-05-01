@@ -19,13 +19,7 @@ exports.enter = function() {
         return;
     }
 
-    var modNames = [];
-    var mods = server.getMods();
-    if (mods !== undefined && mods.mounted_mods !== undefined) {
-        _.forEach(mods.mounted_mods, function (element) {
-            modNames.push(element.display_name);
-        });
-    }
+    var modsData = server.getModsForBeacon();
 
     server.maxClients = 1;
     if (main.serverName)
@@ -39,7 +33,8 @@ exports.enter = function() {
             spectators: 0,
             max_spectators: MAX_SPECTATORS,
             mode: 'Waiting',
-            mod_names: modNames,
+            mod_names: modsData.names,
+            mod_identifiers: modsData.identifiers,
             cheat_config: main.cheats,
             player_names: [],
             spectator_names: [],
