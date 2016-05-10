@@ -146,17 +146,16 @@ function PlayerModel(client, options) {
         if (self.spectator)
             return;
 
+        var primary = colors.takeNextAvailableColorIndex(self.colorIndex[0]);
         self.returnColorIndex();
-        self.colorIndex = [colors.takeNextAvailableColorIndex(self.colorIndex[0]), 0];
+        self.colorIndex = [primary, colors.getRandomSecondaryColorIndexFor(primary)];
     };
 
     self.nextSecondaryColorIndex = function () {
         if (self.spectator)
             return;
 
-        var colors = colors.getSecondaryColorsFor(self.colorIndex[0]);
-        var max = colors.getNumberOfColors();
-        self.colorIndex[1] = (self.colorIndex[1] + 1) % max;
+        self.colorIndex[1] = colors.getNextSecondaryColorIndexFor(self.colorIndex[0], self.colorIndex[1]);
     }
 
     self.clearColorIndex = function () {
@@ -173,7 +172,12 @@ function PlayerModel(client, options) {
     self.setPrimaryColorIndex = function (index) {
         if (self.spectator)
             return;
-        self.colorIndex = [colors.maybeGetNewColorIndex(self.colorIndex[0], index), self.colorIndex[1]];
+        var primary = colors.maybeGetNewColorIndex(self.colorIndex[0], index);
+        var secondary = self.colorIndex[1];
+        if (!colors.isValidColorPair(primary, secondary)) {
+            secondary = colors.getRandomSecondaryColorIndexFor(primary);
+        }
+        self.colorIndex = [primary, secondary];
     };
 
     self.setSecondaryColorIndex = function (index) {
@@ -990,6 +994,32 @@ function LobbyModel(creator) {
         self.setDirty({ colors: true });
     };
 
+    self.nextPrimaryColor = function (player_id) {
+        debug_log('nextPrimaryColor');
+        var player = self.players[player_id];
+
+        if (!player)
+            return;
+
+        player.nextPrimaryColorIndex();
+
+        self.updatePlayerState();
+        self.updateColorState();
+    };
+
+    self.nextSecondaryColor = function (player_id) {
+        debug_log('nextSecondaryColor');
+        var player = self.players[player_id];
+
+        if (!player)
+            return;
+
+        player.nextSecondaryColorIndex();
+
+        self.updatePlayerState();
+        self.updateColorState();
+    };
+
     self.setPrimaryColorIndex = function (player_id, index, ai) {
         debug_log('{{setPrimaryColorIndex}} '  + index);
         var player = self.players[player_id];
@@ -1429,6 +1459,20 @@ function playerMsg_startCountdown(msg) {
         countdownToStartGame();
     }
 
+    response.succeed();
+}
+
+function playerMsg_nextPrimaryColor(msg) {
+    debug_log('playerMsg_nextPrimaryColor');
+    var response = server.respond(msg);
+    lobbyModel.nextPrimaryColor(msg.client.id);
+    response.succeed();
+}
+
+function playerMsg_nextSecondaryColor(msg) {
+    debug_log('playerMsg_nextSecondaryColor');
+    var response = server.respond(msg);
+    lobbyModel.nextSecondaryColor(msg.client.id);
     response.succeed();
 }
 
@@ -1947,6 +1991,8 @@ exports.enter = function (owner) {
         set_primary_color_index_for_ai: playerMsg_setPrimaryColorIndexForAI,
         set_secondary_color_index: playerMsg_setSecondaryColorIndex,
         set_secondary_color_index_for_ai: playerMsg_setSecondaryColorIndexForAI,
+        next_primary_color: playerMsg_nextPrimaryColor,
+        next_secondary_color: playerMsg_nextSecondaryColor,
         set_ai_personality: playerMsg_setAIPersonality,
         set_ai_landing_policy: playerMsg_setAILandingPolicy,
         set_ai_commander: playerMsg_setAICommander,
