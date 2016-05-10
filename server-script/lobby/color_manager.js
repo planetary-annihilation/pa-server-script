@@ -97,6 +97,22 @@ function ColorManager() {
         return self.colors[color_index].secondary;
     };
 
+    self.getRandomSecondaryColorIndexFor = function (color_index) {
+
+        if (color_index < 0)
+            return -1;
+
+        return _.random(self.colors[color_index].secondary.length - 1);
+    };
+
+    self.getNextSecondaryColorIndexFor = function(primary_index, secondary_index) {
+
+        if (primary_index < 0)
+            return -1;
+
+        return (secondary_index + 1) % self.getSecondaryColorsFor(primary_index).length;
+    }
+
     self.takeRandomAvailableColor = function () {
 
         var available = _.filter(self.colors, function (element) {
