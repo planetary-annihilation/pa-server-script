@@ -109,10 +109,10 @@ function PlayerModel(client, options) {
         self.client_data = JSON.parse(client.data);
 
         // add uberId for custom servers
-        client.uberid = client_data.uberid;
+        client.uberid = self.client_data.uberid;
     } catch (error) {
         debug_log("Unable to parse client data for player");
-        debug_log(error);
+        debug_log(client.data);
         self.client_data = null;
     }
     self.creator = !!options.creator;
@@ -864,7 +864,7 @@ function LobbyModel(creator) {
         server.broadcastEventMessage(player.client.name, ' is now the host.');
     };
 
-    self.removePlayer = function (id) {
+    self.removePlayer = function (id, disconnected) {
         debug_log('removePlayer');
 
         delete client_state.players[id];
@@ -878,9 +878,24 @@ function LobbyModel(creator) {
                 server.broadcastEventMessage(player.client.name, ' has left the lobby.');
 
             player.returnColorIndex();
+
             delete self.players[id];
 
             if (!ai) {
+
+                var creatorId = self.creator;
+
+// if an ubernet player disconnected without leaving then send a message to host with game ticket so host can call ubernet removePlayerFromGame (fixes the can't join game with empty slots issue)
+
+                if (!hasStartedPlaying && disconnected && player.isUbernetUser && player.client_data.ticket) {
+console.log('ubernet player ' + player.client.name + ' disconnected from lobby without leaving');
+                    var hostIndex = _.findIndex( server.clients, function(client) { return client.id == creatorId });
+                    server.clients[hostIndex].message({
+                        message_type: 'remove_disconnected_player',
+                        payload: { ticket: player.client_data.ticket }
+                    });
+                }
+
                 console.log('killing client ' + id);
                 player.client.kill();
 
@@ -891,7 +906,7 @@ function LobbyModel(creator) {
                     return;
                 }
 
-                if (id === self.creator)
+                if (id === creatorId)
                     self.chooseNextPlayerAsCreator();
             }
 
@@ -1144,7 +1159,7 @@ function playerMsg_resetArmies(msg){
 
     _.forEach(lobbyModel.players, function (element, key) {
         if (element.ai)
-            lobbyModel.removePlayer(key);
+            lobbyModel.removePlayer(key, false);
         else
             lobbyModel.removePlayerFromArmy(key);
     });
@@ -1672,7 +1687,7 @@ function playerMsg_leave(msg) {
     debug_log('playerMsg_leave');
     var response = server.respond(msg);
 
-    lobbyModel.removePlayer(msg.client.id);
+    lobbyModel.removePlayer(msg.client.id, false);
 
     response.succeed();
 }
@@ -1921,7 +1936,7 @@ exports.enter = function (owner) {
         utils.pushCallback(client, 'onDisconnect', function (onDisconnect) {
             if (!hasStartedPlaying) { /* don't kill the client unless we have not started any other states. */
                 console.log('removing disconnected player from the lobby.');
-                lobbyModel.removePlayer(client.id);
+                lobbyModel.removePlayer(client.id, true);
             }
             return onDisconnect;
         });
