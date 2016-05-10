@@ -104,7 +104,7 @@ function ColorManager() {
         });
 
         var primary = _.sample(available).index;
-        var secondary = _.random(self.getSecondaryColorsFor(primary).length - 1);
+        var secondary = _.random(0,self.getSecondaryColorsFor(primary).length - 1);
 
         self.colors[primary].taken = true;
 
