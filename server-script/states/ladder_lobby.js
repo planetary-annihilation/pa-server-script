@@ -88,7 +88,12 @@ function PlayerModel(client, options) {
     };
 
     self.setPrimaryColorIndex = function (index) {
-        self.colorIndex = [colors.maybeGetNewColorIndex(self.colorIndex[0], index), 0];
+        var primary = colors.maybeGetNewColorIndex(self.colorIndex[0], index);
+        var secondary = self.colorIndex[1];
+        if (!colors.isValidColorPair(primary, secondary)) {
+            secondary = colors.getRandomSecondaryColorIndexFor(primary);
+        }
+        self.colorIndex = [primary, secondary];
     };
 
     self.setSecondaryColorIndex = function (index) {
