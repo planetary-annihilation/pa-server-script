@@ -64,17 +64,16 @@ function PlayerModel(client, options) {
     self.armyIndex = -1;
     self.slotIndex = -1;
 
-    self.colorIndex = [colors.takeRandomAvailableColorIndex(), 0];
+    self.colorIndex = colors.takeRandomAvailableColor();
 
     self.nextPrimaryColorIndex = function () {
+        var primary = colors.takeNextAvailableColorIndex(self.colorIndex[0]);
         self.returnColorIndex();
-        self.colorIndex = [colors.takeNextAvailableColorIndex(self.colorIndex[0]), 0];
+        self.colorIndex = [primary, colors.getRandomSecondaryColorIndexFor(primary)];
     };
 
     self.nextSecondaryColorIndex = function () {
-        var colors = colors.getSecondaryColorsFor(self.colorIndex[0]);
-        var max = colors.getNumberOfColors();
-        self.colorIndex[1] = (self.colorIndex[1] + 1) % max;
+        self.colorIndex[1] = colors.getNextSecondaryColorIndexFor(self.colorIndex[0], self.colorIndex[1]);
     }
 
     self.clearColorIndex = function () {
@@ -89,7 +88,12 @@ function PlayerModel(client, options) {
     };
 
     self.setPrimaryColorIndex = function (index) {
-        self.colorIndex = [colors.maybeGetNewColorIndex(self.colorIndex[0], index), 0];
+        var primary = colors.maybeGetNewColorIndex(self.colorIndex[0], index);
+        var secondary = self.colorIndex[1];
+        if (!colors.isValidColorPair(primary, secondary)) {
+            secondary = colors.getRandomSecondaryColorIndexFor(primary);
+        }
+        self.colorIndex = [primary, secondary];
     };
 
     self.setSecondaryColorIndex = function (index) {
@@ -565,13 +569,7 @@ function LobbyModel() {
         server.maxClients = NUM_PLAYERS + Math.min(MAX_SPECTATORS, main.spectators);
         var full = server.clients.length >= server.maxClients;
 
-        var modNames = [];
-        var mods = server.getMods();
-        if (mods !== undefined && mods.mounted_mods !== undefined) {
-            _.forEach(mods.mounted_mods, function (element) {
-                modNames.push(element.display_name);
-            });
-        }
+        var modsData = server.getModsForBeacon();
 
         var player_names = _.map(_.filter(self.players, { 'spectator': false }), function (player) { return player.client.name; });
         var spectator_names = _.map(_.filter(self.players, { 'spectator': true }), function (player) { return player.client.name; });
@@ -585,7 +583,8 @@ function LobbyModel() {
             spectators: spectator_names.length,
             max_spectators: main.spectators,
             mode: self.settings.game_options.game_type,
-            mod_names: modNames,
+            mod_names: modsData.names,
+            mod_identifiers: modsData.identifiers,
             cheat_config: no_cheats,
             player_names: player_names,
             spectator_names: spectator_names,
