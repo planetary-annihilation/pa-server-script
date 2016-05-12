@@ -1,192 +1,98 @@
-  var brightWhite = [230,230,230],
-            white = [200,200,200],
-           silver = [150,150,155],
-            black = [060,060,060],
-        darkBlack = [040,040,040],
+var _ = require('thirdparty/lodash');
 
-          justRed = [255,  0,  0],
-         lightRed = [235, 60, 54],
-              red = [210, 50, 44],
-          darkRed = [186, 26, 26],
-         burgundy = [123, 22, 33],
-
-             gold = [200,150, 30],
-         darkGold = [175,140,  0],
-
-         iceWhite = [215,238,228],
-          iceBlue = [180,234,255],
-        lightBlue = [ 51,151,197],
-             blue = [ 59, 54,182],
-         navyBlue = [  0, 51,102],
-
-      lightYellow = [219,220, 47],
-           yellow = [255,190, 20],
-
-           orange = [255,144, 47],
-       darkOrange = [197, 83,  0],
-
-         skinPink = [240,194,170],
-        lightPink = [255,122,204],
-           violet = [153,153,255],
-  elodeamelonPink = [255, 50,100],
-             pink = [206, 51,145],
-           purple = [113, 52,165],
-       darkPurple = [ 79, 47, 79],
-
-             cyan = [ 93,242,255],
-         darkCyan = [  0,139,149],
-
-        mintGreen = [180,255,180],
-        limeGreen = [110,225, 10],
-       oliveGreen = [105,120,  0],
-       lightGreen = [ 50,220,110],
-            green = [ 83,159, 48],
-        darkGreen = [  0, 70,  0],
-
-fluorescentJacket = [209,255, 56],
-
-            slate = [ 47, 79, 79],
-
-             bone = [255,250,205],
-              tan = [210,180,140],
-            brown = [142,107, 68],
-     giraffeBrown = [130, 80, 10];
-
-exports.data = [
-    {
-        primary: black,
-        secondary: [
-            red,
-            pink,
-            lightBlue,
-            green,
-            orange,
-            gold,
-            silver
-        ]
-    },
-    {
-        primary: silver,
-        secondary: [ red, darkBlack, lightBlue, limeGreen ]
-    },
-    {
-        primary: slate,
-        secondary: [ darkPurple, orange, brown ]
-    },
-    {
-        primary: navyBlue,
-        secondary: [ limeGreen, elodeamelonPink, tan ]
-    },
-    {
-        primary: brown,
-        secondary: [ tan, purple, pink, mintGreen ]
-    },
-    {
-        primary: purple,
-        secondary: [ lightBlue, gold, white ]
-    },
-    {
-        primary: blue,
-        secondary: [ yellow, orange, iceWhite ]
-    },
-    {
-        primary: darkGreen,
-        secondary: [ lightYellow, white, pink ]
-    },
-    {
-        primary: darkRed,
-        secondary: [ gold, white, purple, black ]
-    },
-    {
-        primary: red,
-        secondary: [ lightBlue, green, yellow ]
-    },
-    {
-        primary: burgundy,
-        secondary: [ cyan, bone, limeGreen ]
-    },
-    {
-        primary: elodeamelonPink,
-        secondary: [ lightGreen, justRed, purple ]
-    },
-    {
-        primary: pink,
-        secondary: [ orange, lightBlue, yellow ]
-    },
-    {
-        primary: lightPink,
-        secondary: [ black, burgundy, brightWhite ]
-    },
-    {
-        primary: cyan,
-        secondary: [ purple, navyBlue, yellow ]
-    },
-    {
-        primary: bone,
-        secondary: [ darkGreen, darkRed, purple ]
-    },
-    {
-        primary: yellow,
-        secondary: [ giraffeBrown, darkBlack, burgundy, slate ]
-    },
-    {
-        primary: orange,
-        secondary: [ black, slate, lightBlue ]
-    },
-    {
-        primary: white,
-        secondary: [ red, lightBlue, green, orange, black ]
-    },
-    {
-        primary: limeGreen,
-        secondary: [ darkRed, darkGreen, navyBlue ]
-    },
-    {
-        primary: tan,
-        secondary: [ oliveGreen, blue, purple ]
-    },
-    {
-        primary: iceBlue,
-        secondary: [ brightWhite, darkRed, orange ]
-    },
-    {
-        primary: lightBlue,
-        secondary: [ gold, red, elodeamelonPink ]
-    },
-    {
-        primary: violet,
-        secondary: [ lightPink, lightRed, purple ]
-    },
-    {
-        primary: green,
-        secondary: [ yellow, pink, purple ]
-    },
-    {
-        primary: oliveGreen,
-        secondary: [ purple, bone, violet ]
-    },
-    {
-        primary: mintGreen,
-        secondary: [ brown, navyBlue, violet ]
-    },
-    {
-        primary: darkGold,
-        secondary: [ purple, lightBlue, silver ]
-    },
-    {
-        primary: darkCyan,
-        secondary: [ black, brightWhite ]
-    },
-    {
-        primary: skinPink,
-        secondary: [ darkRed, purple, darkCyan ]
-    },
-    {
-        primary: darkOrange,
-        secondary: [ darkGreen, purple, darkCyan ]
-    },
-    {
-        primary: fluorescentJacket,
-        secondary: [ black, lightBlue, purple, silver ]
+function rgbToHsv( r,g,b )
+{
+    r = r / 255;
+    g = g / 255;
+    b = b / 255;
+    var minRGB = Math.min( r,g, b );
+    var maxRGB = Math.max( r,g,b );
+    var v = maxRGB;
+    var delta = maxRGB - minRGB;
+    var s = v ? delta / v : 0;
+    var h;
+    if (maxRGB == minRGB) {
+        h = 0;
+    } else {
+        switch( maxRGB ) {
+            case r: h = ( g - b ) / delta + ( g < b ? 6 : 0 ); break;
+            case g: h = ( b - r ) / delta + 2; break;
+            case b: h = ( r - g ) / delta + 4; break;
+        }
+        h = h / 6 * 360;
     }
-];
+    return { h: h, s: s, v: v };
+}
+
+function shvColourSort(colours) {
+    var result = _.sortBy(colours, function(colour) {
+        var hsv = rgbToHsv(colour[0], colour[1], colour[2] );
+        var sort = hsv.s.toString(16) + hsv.h.toString(16) + hsv.v.toString(16);
+        return sort;
+    })
+    return result;
+}
+
+var                 uberRed = [210, 50, 44];
+var                uberPink = [206, 51,122];
+var              uberPurple = [113, 52,165];
+var            uberDarkBlue = [ 59, 54,182];
+var          uberMediumBlue = [ 51,151,197];
+var               uberGreen = [ 83,119, 48];
+var              uberYellow = [219,217, 37];
+var               uberBrown = [142,107, 68];
+var              uberOrange = [255,144, 47];
+var           uberLightGray = [200,200,200];
+var            uberDarkGray = [ 70, 70, 70];
+
+var uberColours = [uberRed, uberPink, uberPurple, uberDarkBlue, uberMediumBlue, uberGreen, uberYellow, uberBrown, uberOrange, uberLightGray, uberDarkGray];
+
+var              redCSS3x11 = [255,  0,  0];
+var   magentaFuchsiaCSS3x11 = [255,  0,255];
+var             blueCSS3x11 = [  0,  0,255];
+var             limeCSS3x11 = [  0,255,  0];
+var             aquaCSS3x11 = [  0,255,255];
+var             tealCSS3x11 = [  0,128,128];
+var           maroonCSS3x11 = [128,  0,  0];
+var           purpleCSS3x11 = [128,  0,128];
+var         deepPinkCSS3x11 = [255, 20,147];
+var          hotPinkCSS3x11 = [255,105,180];
+var     mediumPurpleCSS3x11 = [147,122,219];
+var       powderBlueCSS3x11 = [176,224,230];
+var   cornflowerBlueCSS3x11 = [100,149,237];
+var        paleGreenCSS3x11 = [151,251,152];
+var              tanCSS3x11 = [210,180,140];
+var      lightSalmonCSS3x11 = [255,160,122];
+var     mediumOrchidCSS3x11 = [186, 85,211];
+var       sadleBrownCSS3x11 = [139, 69, 19];
+var     darkSeaGreenCSS3x11 = [143,188,143];
+var        darkGreenCSS3x11 = [  0,100,  0];
+var             pinkCSS3x11 = [255,192,203];
+var        lightPinkCSS3x11 = [255,182,193];
+
+var CSS3x11colours = [maroonCSS3x11, redCSS3x11,  hotPinkCSS3x11, deepPinkCSS3x11, magentaFuchsiaCSS3x11, mediumPurpleCSS3x11, tealCSS3x11, darkSeaGreenCSS3x11, darkGreenCSS3x11, aquaCSS3x11, limeCSS3x11, blueCSS3x11, powderBlueCSS3x11, cornflowerBlueCSS3x11, paleGreenCSS3x11, tanCSS3x11, purpleCSS3x11, mediumOrchidCSS3x11, lightSalmonCSS3x11, sadleBrownCSS3x11, pinkCSS3x11];
+
+var brightnessAdjustment = 14/16;
+
+CSS3x11colours = _.map(CSS3x11colours,function(colour) {
+
+    var r = colour[0];
+    var g = colour[1];
+    var b = colour[2];
+
+    if ( r == 255 || g == 255 || b == 255 ) {
+        r = Math.round(r * brightnessAdjustment);
+        g = Math.round(g * brightnessAdjustment);
+        b = Math.round(b * brightnessAdjustment);
+    }
+
+    return [r, g, b];
+});
+
+
+var colours = shvColourSort(uberColours.concat(CSS3x11colours));
+
+exports.data = _.map(colours, function(colour) {
+    var result = { primary: colour, secondary: colours };
+    return result;
+});

@@ -109,10 +109,10 @@ function PlayerModel(client, options) {
         self.client_data = JSON.parse(client.data);
 
         // add uberId for custom servers
-        client.uberid = client_data.uberid;
+        client.uberid = self.client_data.uberid;
     } catch (error) {
         debug_log("Unable to parse client data for player");
-        debug_log(error);
+        debug_log(client.data);
         self.client_data = null;
     }
     self.creator = !!options.creator;
@@ -146,17 +146,16 @@ function PlayerModel(client, options) {
         if (self.spectator)
             return;
 
+        var primary = colors.takeNextAvailableColorIndex(self.colorIndex[0]);
         self.returnColorIndex();
-        self.colorIndex = [colors.takeNextAvailableColorIndex(self.colorIndex[0]), 0];
+        self.colorIndex = [primary, colors.getRandomSecondaryColorIndexFor(primary)];
     };
 
     self.nextSecondaryColorIndex = function () {
         if (self.spectator)
             return;
 
-        var colors = colors.getSecondaryColorsFor(self.colorIndex[0]);
-        var max = colors.getNumberOfColors();
-        self.colorIndex[1] = (self.colorIndex[1] + 1) % max;
+        self.colorIndex[1] = colors.getNextSecondaryColorIndexFor(self.colorIndex[0], self.colorIndex[1]);
     }
 
     self.clearColorIndex = function () {
@@ -173,7 +172,12 @@ function PlayerModel(client, options) {
     self.setPrimaryColorIndex = function (index) {
         if (self.spectator)
             return;
-        self.colorIndex = [colors.maybeGetNewColorIndex(self.colorIndex[0], index), self.colorIndex[1]];
+        var primary = colors.maybeGetNewColorIndex(self.colorIndex[0], index);
+        var secondary = self.colorIndex[1];
+        if (!colors.isValidColorPair(primary, secondary)) {
+            secondary = colors.getRandomSecondaryColorIndexFor(primary);
+        }
+        self.colorIndex = [primary, secondary];
     };
 
     self.setSecondaryColorIndex = function (index) {
@@ -860,7 +864,7 @@ function LobbyModel(creator) {
         server.broadcastEventMessage(player.client.name, ' is now the host.');
     };
 
-    self.removePlayer = function (id) {
+    self.removePlayer = function (id, disconnected) {
         debug_log('removePlayer');
 
         delete client_state.players[id];
@@ -874,9 +878,24 @@ function LobbyModel(creator) {
                 server.broadcastEventMessage(player.client.name, ' has left the lobby.');
 
             player.returnColorIndex();
+
             delete self.players[id];
 
             if (!ai) {
+
+                var creatorId = self.creator;
+
+// if an ubernet player disconnected without leaving then send a message to host with game ticket so host can call ubernet removePlayerFromGame (fixes the can't join game with empty slots issue)
+
+                if (!hasStartedPlaying && disconnected && player.isUbernetUser && player.client_data.ticket) {
+console.log('ubernet player ' + player.client.name + ' disconnected from lobby without leaving');
+                    var hostIndex = _.findIndex( server.clients, function(client) { return client.id == creatorId });
+                    server.clients[hostIndex].message({
+                        message_type: 'remove_disconnected_player',
+                        payload: { ticket: player.client_data.ticket }
+                    });
+                }
+
                 console.log('killing client ' + id);
                 player.client.kill();
 
@@ -887,7 +906,7 @@ function LobbyModel(creator) {
                     return;
                 }
 
-                if (id === self.creator)
+                if (id === creatorId)
                     self.chooseNextPlayerAsCreator();
             }
 
@@ -988,6 +1007,32 @@ function LobbyModel(creator) {
         });
 
         self.setDirty({ colors: true });
+    };
+
+    self.nextPrimaryColor = function (player_id) {
+        debug_log('nextPrimaryColor');
+        var player = self.players[player_id];
+
+        if (!player)
+            return;
+
+        player.nextPrimaryColorIndex();
+
+        self.updatePlayerState();
+        self.updateColorState();
+    };
+
+    self.nextSecondaryColor = function (player_id) {
+        debug_log('nextSecondaryColor');
+        var player = self.players[player_id];
+
+        if (!player)
+            return;
+
+        player.nextSecondaryColorIndex();
+
+        self.updatePlayerState();
+        self.updateColorState();
     };
 
     self.setPrimaryColorIndex = function (player_id, index, ai) {
@@ -1114,7 +1159,7 @@ function playerMsg_resetArmies(msg){
 
     _.forEach(lobbyModel.players, function (element, key) {
         if (element.ai)
-            lobbyModel.removePlayer(key);
+            lobbyModel.removePlayer(key, false);
         else
             lobbyModel.removePlayerFromArmy(key);
     });
@@ -1432,6 +1477,20 @@ function playerMsg_startCountdown(msg) {
     response.succeed();
 }
 
+function playerMsg_nextPrimaryColor(msg) {
+    debug_log('playerMsg_nextPrimaryColor');
+    var response = server.respond(msg);
+    lobbyModel.nextPrimaryColor(msg.client.id);
+    response.succeed();
+}
+
+function playerMsg_nextSecondaryColor(msg) {
+    debug_log('playerMsg_nextSecondaryColor');
+    var response = server.respond(msg);
+    lobbyModel.nextSecondaryColor(msg.client.id);
+    response.succeed();
+}
+
 function playerMsg_setPrimaryColorIndex(msg) {
     debug_log('playerMsg_setPrimaryColorIndex');
     debug_log(msg);
@@ -1628,7 +1687,7 @@ function playerMsg_leave(msg) {
     debug_log('playerMsg_leave');
     var response = server.respond(msg);
 
-    lobbyModel.removePlayer(msg.client.id);
+    lobbyModel.removePlayer(msg.client.id, false);
 
     response.succeed();
 }
@@ -1877,7 +1936,7 @@ exports.enter = function (owner) {
         utils.pushCallback(client, 'onDisconnect', function (onDisconnect) {
             if (!hasStartedPlaying) { /* don't kill the client unless we have not started any other states. */
                 console.log('removing disconnected player from the lobby.');
-                lobbyModel.removePlayer(client.id);
+                lobbyModel.removePlayer(client.id, true);
             }
             return onDisconnect;
         });
@@ -1947,6 +2006,8 @@ exports.enter = function (owner) {
         set_primary_color_index_for_ai: playerMsg_setPrimaryColorIndexForAI,
         set_secondary_color_index: playerMsg_setSecondaryColorIndex,
         set_secondary_color_index_for_ai: playerMsg_setSecondaryColorIndexForAI,
+        next_primary_color: playerMsg_nextPrimaryColor,
+        next_secondary_color: playerMsg_nextSecondaryColor,
         set_ai_personality: playerMsg_setAIPersonality,
         set_ai_landing_policy: playerMsg_setAILandingPolicy,
         set_ai_commander: playerMsg_setAICommander,
