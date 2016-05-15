@@ -88,7 +88,7 @@ exports.enter = function (game_over_data) {
         if (REPLAY_FILENAME) {
             var now = new Date();
             switch(REPLAY_FILENAME) {
-                case 'UTCTIMESTAMP': REPLAY_FILENAME = now.toISOString(); break;
+                case 'UTCTIMESTAMP': REPLAY_FILENAME = now.toISOString().replace(/(T|:)/g, '-'); break;
             }
             server.writeReplay(REPLAY_FILENAME, 'replay');
         } else {
