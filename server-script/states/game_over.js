@@ -81,7 +81,7 @@ exports.url = 'coui://ui/main/game/game_over/game_over.html';
 exports.enter = function (game_over_data) {
     var GAMEOVER_SHUTDOWN_TIMEOUT = 3600;
 
-    var writeReplay = _.once(function() { server.writeReplay(); });
+    var writeReplay = _.once(function() { server.writeReplay(main.REPLAY_FILENAME); });
 
     _.delay(function () {
         sim.paused = true;
