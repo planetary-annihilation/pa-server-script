@@ -39,9 +39,10 @@ if (envDefaultGameTypeIndex != -1) {
     exports.DEFAULT_GAME_TYPE = env[envDefaultGameTypeIndex+1];
 }
 
-var envReplayFilenameeIndex = env.indexOf('--replay-filename');
-if (envReplayFilenameeIndex != -1) {
-    exports.REPLAY_FILENAME = env[envReplayFilenameeIndex+1];
+var envReplayFilenameIndex = env.indexOf('--replay-filename');
+if (envReplayFilenameIndex != -1) {
+    exports.REPLAY_FILENAME = env[envReplayFilenameIndex+1];
+    console.log('Replay filename ' + exports.REPLAY_FILENAME);
 }
 
 function shutdownWhenEmpty() {
