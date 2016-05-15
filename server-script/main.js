@@ -13,7 +13,7 @@ exports.MAX_SPECTATORS = 3;
 exports.SERVER_PASSWORD = '';
 exports.DEFAULT_LOBBY_NAME = '';
 exports.DEFAULT_GAME_TYPE = 'FreeForAll';
-exports.REPLAY_FILENAME = 'replay';
+exports.REPLAY_FILENAME = '';
 exports.REPLAY_TIMEOUT = 10 * 60;
 
 var envMaxPlayersIndex = env.indexOf('--max-players');
