@@ -86,6 +86,10 @@ exports.enter = function (game_over_data) {
 
     var writeReplay = _.once(function() {
         if (REPLAY_FILENAME) {
+            var now = new Date();
+            switch(REPLAY_FILENAME) {
+                case 'UTCTIMESTAMP': REPLAY_FILENAME = now.toISOString(); break;
+            }
             server.writeReplay(REPLAY_FILENAME, 'replay');
         } else {
             server.writeReplay();
