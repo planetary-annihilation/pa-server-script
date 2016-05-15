@@ -271,6 +271,14 @@ exports.enter = function (save_file_info) {
         {
             client_connected = true;
 
+            client.message({
+                message_type: 'downloading_mod_data',
+                payload: server.getModsPayload()
+            });
+
+            console.log('calling client.downloadModsFromServer');
+            client.downloadModsFromServer();
+
             if (replay_config && replay_config.files) {
                 client.message({
                     message_type: 'memory_files',

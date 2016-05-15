@@ -14,6 +14,7 @@ exports.SERVER_PASSWORD = '';
 exports.DEFAULT_LOBBY_NAME = '';
 exports.DEFAULT_GAME_TYPE = 'FreeForAll';
 exports.REPLAY_FILENAME = 'replay';
+exports.REPLAY_TIMEOUT = 10 * 60;
 
 var envMaxPlayersIndex = env.indexOf('--max-players');
 if (envMaxPlayersIndex != -1) {
@@ -43,6 +44,11 @@ var envReplayFilenameIndex = env.indexOf('--replay-filename');
 if (envReplayFilenameIndex != -1) {
     exports.REPLAY_FILENAME = env[envReplayFilenameIndex+1];
     console.log('Replay filename ' + exports.REPLAY_FILENAME);
+}
+
+var envReplayTimeoutIndex = env.indexOf('--replay-timeout');
+if (envReplayTimeoutIndex != -1) {
+    exports.REPLAY_TIMEOUT = parseInt(env[envReplayTimeoutIndex+1]);
 }
 
 function shutdownWhenEmpty() {

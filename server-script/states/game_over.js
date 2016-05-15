@@ -3,8 +3,11 @@ var _ = require('thirdparty/lodash');
 var chat_utils = require('chat_utils');
 var content_manager = require('content_manager');
 
+var REPLAY_FILENAME = main.REPLAY_FILENAME;
+
 // Timeout values, in seconds.
 var PAUSE_TIMEOUT = 30;
+var REPLAY_TIMEOUT = main.REPLAY_TIMEOUT;
 
 var winners = {};
 var losers = {};
@@ -81,24 +84,39 @@ exports.url = 'coui://ui/main/game/game_over/game_over.html';
 exports.enter = function (game_over_data) {
     var GAMEOVER_SHUTDOWN_TIMEOUT = 3600;
 
-    var writeReplay = _.once(function() { server.writeReplay(main.REPLAY_FILENAME); });
+    var writeReplay = _.once(function() {
+        if (REPLAY_FILENAME) {
+            server.writeReplay(REPLAY_FILENAME, 'replay');
+        } else {
+            server.writeReplay();
+        }
+    });
 
     _.delay(function () {
         sim.paused = true;
-        writeReplay();
     }, PAUSE_TIMEOUT * 1000);
 
 
-    if (!main.keep_alive) {
+    if (main.keep_alive) {
+        setTimeout( function() {
+            writeReplay();
+        }, REPLAY_TIMEOUT * 1000 ); 
+    } else {
 
         var timeouts = {
+            replayTimeout: null,
             tenMinuteMark: null,
             forceShutdown: null,
             connectionPolling: null
         }
 
+        timeouts.replayTimeout = setTimeout(function () {
+            writeReplay();
+        }, REPLAY_TIMEOUT * 1000);
+
         console.log("The server will shut down in " + GAMEOVER_SHUTDOWN_TIMEOUT / 60 + " minutes.");
         timeouts.tenMinuteMark = setTimeout(function () {
+            writeReplay();
             server.incrementTitleStatistic("LobbyStillUp10MinsAfterGameOver", 1);
         }, 600 * 1000);
 
@@ -120,6 +138,7 @@ exports.enter = function (game_over_data) {
         }, 1000);
 
         cleanup.push(function () {
+            clearTimeout(timeouts.replayTimeout);
             clearTimeout(timeouts.tenMinuteMark);
             clearTimeout(timeouts.forceShutdown);
             clearInterval(timeouts.connectionPolling);
