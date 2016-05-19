@@ -13,6 +13,8 @@ exports.MAX_SPECTATORS = 3;
 exports.SERVER_PASSWORD = '';
 exports.DEFAULT_LOBBY_NAME = '';
 exports.DEFAULT_GAME_TYPE = 'FreeForAll';
+exports.REPLAY_FILENAME = '';
+exports.REPLAY_TIMEOUT = 10 * 60;
 
 var envMaxPlayersIndex = env.indexOf('--max-players');
 if (envMaxPlayersIndex != -1) {
@@ -36,6 +38,17 @@ if (envDefaultLobbyNameIndex != -1) {
 var envDefaultGameTypeIndex = env.indexOf('--default-game-type');
 if (envDefaultGameTypeIndex != -1) {
     exports.DEFAULT_GAME_TYPE = env[envDefaultGameTypeIndex+1];
+}
+
+var envReplayFilenameIndex = env.indexOf('--replay-filename');
+if (envReplayFilenameIndex != -1) {
+    exports.REPLAY_FILENAME = env[envReplayFilenameIndex+1];
+    console.log('Replay filename ' + exports.REPLAY_FILENAME);
+}
+
+var envReplayTimeoutIndex = env.indexOf('--replay-timeout');
+if (envReplayTimeoutIndex != -1) {
+    exports.REPLAY_TIMEOUT = parseInt(env[envReplayTimeoutIndex+1]);
 }
 
 function shutdownWhenEmpty() {
@@ -62,7 +75,7 @@ function shutdownWhenEmpty() {
     }, 1000);
 }
 
-function setState(newState) {
+function setState(newState /*, config, optional */) {
     console.log("Changing state from", curState.name, "to", newState.name);
 
     if (newState === curState)
