@@ -1047,6 +1047,11 @@ exports.enter = function (owner) {
         if (player.armyIndex === -1) /* make the player a spectator if there is no room */
             player.spectator = true;
 
+        client.message({
+            message_type: 'downloading_mod_data',
+            payload: server.getModsPayload()
+        });
+            
         debug_log('calling client.downloadModsFromServer');
         client.downloadModsFromServer();
 
