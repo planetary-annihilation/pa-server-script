@@ -36,6 +36,14 @@ var players = {};
 var armies = [];
 var diplomaticStates = {};
 
+var mod_info_sent = {
+    /* client.id : bool */
+}
+
+var mod_data_received = {
+    /* client.id : bool */
+}
+
 var memory_files_received = {
     /* client.id : bool */
 }
@@ -50,21 +58,24 @@ _.assign(module, require('states/playing_shared').import(module));
 function playerMsg_heartbeat(msg) {
     var response = server.respond(msg);
 
-    if (!memory_files_received[msg.client.id] && replay_config && replay_config.files) {
+// if replay is fully loaded then send mods info if not already sent
+
+    if (config && !mod_info_sent[msg.client.id]) {
+        mod_info_sent[msg.client.id] = true;
         msg.client.message({
-            message_type: 'memory_files',
-            payload: replay_config.files
+            message_type: 'mods_info',
+            payload: server.getModsPayload()
         });
     }
-
     response.succeed();
 }
 
 function processReplayConfig (config) {
 
+// memory mount any cooked  files for gw
+
     if (!config || !config.files)
         return false;
-
 
     replay_config = config;
 
@@ -79,26 +90,61 @@ function processReplayConfig (config) {
     });
     file.mountMemoryFiles(cookedFiles);
 
-    if (server.clients.length)
-        server.broadcast({
-            message_type: 'memory_files',
-            payload: replay_config.files
-        });
-
-    return true;
 }
 
 function clientFilesAreReady() {
-    if (!replay_config)
-        return true;
 
-    if (_.isEmpty(replay_config.files))
+// clients are ready when connected, any server mods are mounted and any cooked files are memory mounted
+
+    if (!client_connected) {
+        return false;
+    }
+    var serverModsReady = _.every(server.clients, function (client) {
+        return !!mod_data_received[client.id];
+    });
+
+    if (!serverModsReady) {
+        return false;
+    }
+
+    if (!replay_config || _.isEmpty(replay_config.files) )
         return true;
 
     return _.every(server.clients, function (client) {
         return !!memory_files_received[client.id];
     });
 }
+
+function playerMsg_SendMods(msg) {
+
+ // send the status message, then server mods and finally any cooked files for gw
+
+    msg.client.message({
+        message_type: 'downloading_mod_data',
+        payload: server.getModsPayload()
+    });
+
+    console.log('calling client.downloadModsFromServer');
+    msg.client.downloadModsFromServer();
+
+    if (replay_config && replay_config.files) {
+        msg.client.message({
+            message_type: 'memory_files',
+            payload: replay_config.files
+        });
+    }
+}
+
+// received when server mods have been mounted on client
+
+function playerMsg_ModDataReceived (msg) {
+    mod_data_received[msg.client.id] = true;
+
+    if (clientFilesAreReady())
+        server.createSimFromReplay();
+}
+
+// received when any cooked gw files have been memory mounted on client
 
 function playerMsg_MemoryFilesReceived (msg) {
     memory_files_received[msg.client.id] = true;
@@ -215,11 +261,8 @@ function loadSave() {
 
     var full = server.getFullReplayConfig();
 
-    var wait = processReplayConfig(full.config);
-    if (!wait && clientFilesAreReady())
-        server.createSimFromReplay();
+    processReplayConfig(full.config);
 
-    tryToAdvanceState();
 }
 
 function tryGenerateArmies() {
@@ -270,17 +313,8 @@ exports.enter = function (save_file_info) {
         else
         {
             client_connected = true;
-
-            if (replay_config && replay_config.files) {
-                client.message({
-                    message_type: 'memory_files',
-                    payload: replay_config.files
-                });
-            }
-
-            tryGenerateArmies();
-            tryToAdvanceState();
         }
+// first heatbeat from replay_loading will send mods info
         return onConnect;
     });
 
@@ -316,7 +350,9 @@ exports.enter = function (save_file_info) {
 
     var removeHandlers = server.setHandlers({
         heartbeat: playerMsg_heartbeat,
-        memory_files_received: playerMsg_MemoryFilesReceived
+        send_mods: playerMsg_SendMods,
+        mod_data_received: playerMsg_ModDataReceived,
+        memory_files_received: playerMsg_MemoryFilesReceived,
     });
     cleanup.push(removeHandlers);
 
@@ -325,6 +361,7 @@ exports.enter = function (save_file_info) {
     // check if the replay file is ready every 250 ms
     var maybeProcessSave = function () {
         console.log('Waiting for replay file');
+
         var ready = server.checkReplayReady(saveFileName, sentinelFileName);
         if (!ready) {
             fileCheckTimeout = setTimeout(maybeProcessSave, 250);
