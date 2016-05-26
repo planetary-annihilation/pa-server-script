@@ -887,7 +887,7 @@ function LobbyModel(creator) {
 
 // if an ubernet player disconnected without leaving then send a message to host with game ticket so host can call ubernet removePlayerFromGame (fixes the can't join game with empty slots issue)
 
-                if (!hasStartedPlaying && disconnected && player.isUbernetUser && player.client_data.ticket) {
+                if (!hasStartedPlaying && disconnected && player.client.isUbernetUser && player.client_data.ticket) {
 console.log('ubernet player ' + player.client.name + ' disconnected from lobby without leaving');
                     var hostIndex = _.findIndex( server.clients, function(client) { return client.id == creatorId });
                     server.clients[hostIndex].message({
