@@ -768,7 +768,7 @@ function LobbyModel(creator) {
 
             var modsData = server.getModsForBeacon();
 
-            var player_names = _.map(_.filter(self.players, { 'spectator': false }), function (player) { return player.client.name; });
+            var player_names = _.map(_.filter(self.players, { 'spectator': false }), function (player) { return player.client.name + (player.ai ? ' (AI)' : '' ); });
             var spectator_names = _.map(_.filter(self.players, { 'spectator': true }), function (player) { return player.client.name; });
 
             var mode = DEFAULT_GAME_TYPE;
