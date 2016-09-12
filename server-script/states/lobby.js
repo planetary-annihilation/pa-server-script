@@ -8,6 +8,7 @@ var env = require('env');
 var _ = require('thirdparty/lodash');
 var commander_manager = require('lobby/commander_manager');
 var color_manager = require('lobby/color_manager');
+var file_utils = require('file_utils');
 
 var SERVER_PASSWORD = main.SERVER_PASSWORD;
 
@@ -100,6 +101,30 @@ var hasStartedPlaying = false;
 var MAX_LOBBY_CHAT_HISTORY = 100;
 
 var lobbyChatHistory = [];
+
+var unitList = [];
+var unitRestrictions = [];
+
+function updateUnitList() {
+    debug_log('updateUnitList');
+    unitList = file_utils.loadJsonBlocking('/pa/units/unit_list.json').units;
+}
+
+function applyUnitRestrictions() {
+
+    file.mountMemoryFiles({'/pa/units/unit_list.json':JSON.stringify({ units: _.difference(unitList, unitRestrictions)})});
+
+    server.broadcast({
+        message_type: 'unit_restrictions',
+        payload: {
+            payload: { units: unitRestrictions },
+        }
+    });
+}
+
+// load default unit list
+
+updateUnitList();
 
 function PlayerModel(client, options) {
     var self = this;
@@ -1365,22 +1390,22 @@ function playerMsg_modifySettings(msg) {
 
     settings.game_options = game_options;
 
-	var nameChangeOnly = false;
+    var nameChangeOnly = false;
 
-	if (settings.game_name !== lobbyModel.settings.game_name) {
-		var currentSettings = _.cloneDeep(lobbyModel.settings);
-		delete currentSettings.game_name;
-		var newSettings = _.cloneDeep(settings);
-		delete newSettings.game_name;
+    if (settings.game_name !== lobbyModel.settings.game_name) {
+        var currentSettings = _.cloneDeep(lobbyModel.settings);
+        delete currentSettings.game_name;
+        var newSettings = _.cloneDeep(settings);
+        delete newSettings.game_name;
 
-		nameChangeOnly = _.isEqual(currentSettings, newSettings);
-	}
+        nameChangeOnly = _.isEqual(currentSettings, newSettings);
+    }
 
     lobbyModel.changeSettings(settings);
 
-	if (!nameChangeOnly) {
-    	lobbyModel.unreadyAllPlayers();
-	}
+    if (!nameChangeOnly) {
+        lobbyModel.unreadyAllPlayers();
+    }
 
     response.succeed();
 }
@@ -1683,6 +1708,23 @@ function playerMsg_jsonMessage(msg) {
     response.succeed();
 }
 
+function playerMsg_unitRestrictions(msg) {
+    debug_log('playerMsg_unitRestrictions');
+    var response = server.respond(msg);
+    if (lobbyModel.creator !== msg.client.id) {
+        return response.fail("Unit restrictions can only be provided by lobby creator");
+    }
+
+    if (!msg.payload||!_.isArray(msg.payload.units))
+        return response.fail("No units");
+    
+    unitRestrictions = msg.payload.units;
+    
+    applyUnitRestrictions();
+
+    response.succeed();
+}
+
 function playerMsg_leave(msg) {
     debug_log('playerMsg_leave');
     var response = server.respond(msg);
@@ -1772,6 +1814,8 @@ function playerMsg_modDataAvailable(msg) {
     }
 
     response.succeed({ "auth_token": auth_token });
+    
+    updateUnitList();
 }
 
 function check_cheat(cheatname, callback) {
@@ -1814,6 +1858,8 @@ function playerMsg_modDataUpdated(msg) {
 
     commanders.update();
 
+    updateUnitList();
+
     _.forEach(server.clients, function (client) {
         var mods = server.getModsPayload();
 
@@ -1830,6 +1876,8 @@ function playerMsg_modDataUpdated(msg) {
             });
         }
     });
+
+    applyUnitRestrictions();
 }
 
 function playerMsg_requestCheatConfig(msg) {
@@ -1974,6 +2022,13 @@ exports.enter = function (owner) {
         client.downloadModsFromServer();
 
         client.message({
+            message_type: 'unit_restrictions',
+            payload: {
+                payload: { units: unitRestrictions },
+            }
+        }); 
+
+        client.message({
             message_type: 'set_cheat_config',
             payload: main.cheats
         });
@@ -2025,7 +2080,8 @@ exports.enter = function (owner) {
         mod_data_updated: playerMsg_modDataUpdated,
         request_cheat_config: playerMsg_requestCheatConfig,
         json_message: playerMsg_jsonMessage,
-        chat_history: playerMsg_chatHistory
+        chat_history: playerMsg_chatHistory,
+        unit_restrictions: playerMsg_unitRestrictions
     });
     cleanup.push(function () { removeHandlers(); });
 
