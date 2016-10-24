@@ -61,6 +61,8 @@ if (!isValidGameType(DEFAULT_GAME_TYPE)) {
 var isFFAType = function (game_type) {
     return game_type === 'FreeForAll';
 };
+var isAI    = function (player) { return player.ai; };
+var isHuman = function (player) { return !player.ai; };
 
 var DEFAULT_GAME_OPTIONS = {
     dynamic_alliances: false,
@@ -741,9 +743,9 @@ function LobbyModel(creator) {
 
         var new_options = _.assign(army.asJson(), options);
 
-        var ai = !!_.filter(self.playersInArmy(army_index), function (element) { return element.ai }).length;
-        if (ai)
-            new_options.alliance = true; /* override to prevent shared army with ai */
+        var players = self.playersInArmy(army_index);
+        if (players.some(isAI) && players.some(isHuman))
+             new_options.alliance = true; /* override to prevent shared army with ai */
 
         if (options.slots && (options.slots - army.slots + self.totalSlots()) > MAX_PLAYERS)
             return;
@@ -967,8 +969,8 @@ console.log('ubernet player ' + player.client.name + ' disconnected from lobby w
         player.slotIndex = count;
         player.spectator = false;
 
-        if (player.ai)
-            army.alliance = true; /* override to prevent shared army with ai */
+        if (player.ai && array.some(isHuman) || !player.ai && array.some(isAI))
+             army.alliance = true; /* override to prevent shared army with ai */
 
         self.fixColors();
 
